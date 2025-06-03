@@ -1,21 +1,27 @@
-name: Build and Upload Artifact
+name: Artifact with Global Retention Days
 
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      RETENTION_DAYS: 10   
     steps:
-    - name: Checkout Code
+    - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Generate a File
+    - name: Simulate Build Output with Date
       run: |
-        mkdir -p output
-        echo "This is an artifact file!" > output/hello.txt
+        mkdir -p build
+        today=$(date '+%d %B %Y')
+        expiry=$(date -d "+$RETENTION_DAYS days" '+%d %B %Y')
+        echo "Build completed on $today and will be stored until $expiry." > build/build.txt
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: my-artifact
-        path: output/
+        name: build-output
+        path: build/
+        retention-days: ${{ env.RETENTION_DAYS }}
