@@ -1,4 +1,4 @@
-name: Artifact with Global Retention Days
+name: Enhanced Artifact Workflow
 
 on: [push]
 
@@ -7,9 +7,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      RETENTION_DAYS: 10   
+      RETENTION_DAYS: 10
+
     steps:
-    - name: Checkout
+    - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Simulate Build Output with Date
@@ -19,9 +20,28 @@ jobs:
         expiry=$(date -d "+$RETENTION_DAYS days" '+%d %B %Y')
         echo "Build completed on $today and will be stored until $expiry." > build/build.txt
 
-    - name: Upload Artifact
+    - name: Save environment variables
+      run: env > env-vars.txt
+
+    - name: Save system information
+      run: |
+        mkdir -p sysinfo
+        uname -a > sysinfo/uname.txt
+        node -v > sysinfo/node-version.txt
+        python --version > sysinfo/python-version.txt || true  # ignore if python not installed
+
+    - name: Generate JSON report
+      run: |
+        mkdir -p reports
+        echo '{"build_date": "'"$(date --iso-8601=seconds)"'", "status": "success"}' > reports/build-report.json
+
+    - name: Upload all artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: build-output
-        path: build/
+        name: complete-artifacts
+        path: |
+          build/
+          env-vars.txt
+          sysinfo/
+          reports/
         retention-days: ${{ env.RETENTION_DAYS }}
