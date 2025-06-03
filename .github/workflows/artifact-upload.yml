@@ -11,7 +11,7 @@ jobs:
 
     - name: Generate a File
       run: |
-        mkdir output
+        mkdir -p output
         echo "This is an artifact file!" > output/hello.txt
 
     - name: Upload Artifact
